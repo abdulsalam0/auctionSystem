@@ -6,26 +6,26 @@ networks:
 services:
   server1:
     container_name: server1
-    image: harbor.scc.lancs.ac.uk/$USERNAME/server:latest
+    image: harbor.scc.lancs.ac.uk/${USERNAME}/server:latest
     restart: unless-stopped
-    hostname: server1:8080
+    hostname: server1:8081
     environment:
       - REDIS_HOST=${REDIS_HOST}
       - REDIS_PORT=${REDIS_PORT}
       - SERVER_NAME=${SERVER_NAME1}
       - SERVER_PORT=${SERVER_PORT1}
     build:
-      context: ./server/
+      context: ./server
     networks:
       - auctionSystem
     ports:
-      - 8080:8080
+      - 8080:8081
     depends_on:
       - redis
 
   server2:
     container_name: server2
-    image: harbor.scc.lancs.ac.uk/$USERNAME/server:latest
+    image: harbor.scc.lancs.ac.uk/${USERNAME}/server:latest
     restart: unless-stopped
     hostname: server2:8080
     environment:
@@ -34,17 +34,18 @@ services:
       - SERVER_NAME=${SERVER_NAME2}
       - SERVER_PORT=${SERVER_PORT2}
     build:
-      context: ./server/
+      context: ./server
     networks:
       - auctionSystem
     ports:
-      - 8081:8080
+      - 8081:8081
     depends_on:
       - redis
 
+
   load-balancer:
     container_name: load-balancer
-    image: harbor.scc.lancs.ac.uk/$USERNAME/load-balancer:latest
+    image: harbor.scc.lancs.ac.uk/${USERNAME}/load-balancer:latest
     restart: unless-stopped
     environment:
       - REDIS_HOST=${REDIS_HOST}
@@ -65,4 +66,4 @@ services:
     networks:
       - auctionSystem
     ports:
-      - ${REDIS_PORT}:${REDIS_PORT}
+      - 6379:6379
