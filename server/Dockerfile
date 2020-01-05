@@ -1,9 +1,15 @@
-FROM golang:1.13.5-alpine3.11
+FROM golang:1.8
 
-WORKDIR ./src
-COPY . .
+RUN mkdir /app
 
-RUN go get -d -v ./...
-RUN go install -v ./...
+ADD ./src /app
 
-CMD ["main.go"]
+WORKDIR /app
+
+RUN go get -u github.com/gorilla/mux
+
+RUN go build -o main .
+
+EXPOSE 8080
+
+CMD ["/app/main"]
