@@ -26,33 +26,45 @@ type Bid struct {
 }
 
 type User struct {
+	UserID    string `json:"userid"`
 	FirstName string `json:"firstname"`
 	LastName  string `json:"lastname"`
 	Username  string `json:"username"`
 	Password  string `json:"password"`
 }
 
-// making a collection of auctions
+// making all the difderent collection
 var auctions []Auction
+var users []User
 
-var ID = 1
+var IDUser = 1
+var IDAuction = 1
 
 // create a user
 func registerUser(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "User page\n")
-	fmt.Println("hello world")
+	w.Header().Set("Content-Type", "application/json")
+	var user User
+	_ = json.NewDecoder(r.Body).Decode(&user)
+	user.UserID = strconv.Itoa(IDUser)
+	users = append(users, user)
+	json.NewEncoder(w).Encode(user)
+	IDUser++
+
+	// TODO respond with the jwt token
+
+	fmt.Println("created user")
 }
 
 // sign in user
 func loginUser(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "User page\n")
-	fmt.Println("hello world")
+	w.Header().Set("Content-Type", "application/json")
 }
 
 // view all auctions
 func viewAuctions(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(auctions)
 	w.Header().Set("Content-Type", "application/json")
+	fmt.Println(auctions[1].AuctionID)
 	fmt.Println("Sending List of Auctions")
 }
 
@@ -95,10 +107,10 @@ func createAuction(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var auction Auction
 	_ = json.NewDecoder(r.Body).Decode(&auction)
-	auction.AuctionID = strconv.Itoa(ID)
+	auction.AuctionID = strconv.Itoa(IDAuction)
 	auctions = append(auctions, auction)
 	json.NewEncoder(w).Encode(auction)
-	ID++
+	IDAuction++
 	fmt.Println("added New auction")
 }
 
@@ -112,6 +124,7 @@ func deleteAuction(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 	}
+	fmt.Println(auctions)
 	json.NewEncoder(w).Encode(auctions)
 	fmt.Println("deleted Auction")
 }
@@ -131,8 +144,9 @@ func placeBid(w http.ResponseWriter, r *http.Request) {
 func main() {
 	r := mux.NewRouter()
 
-	auctions = append(auctions, Auction{AuctionID: "1", AuctionName: "Iphone", FirstBid: 100, SellerID: "10", AuctionStatus: "Avalible"})
-	auctions = append(auctions, Auction{AuctionID: "2", AuctionName: "Laptop", FirstBid: 500, SellerID: "11", AuctionStatus: "Avalible"})
+	// creating fake data
+	auctions = append(auctions, Auction{AuctionID: "9", AuctionName: "Iphone", FirstBid: 100, SellerID: "10", AuctionStatus: "Avalible"})
+	auctions = append(auctions, Auction{AuctionID: "10", AuctionName: "Laptop", FirstBid: 500, SellerID: "11", AuctionStatus: "Avalible"})
 
 	// user endpoints
 	r.HandleFunc("/api/user", registerUser).Methods("POST")
