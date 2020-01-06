@@ -47,6 +47,7 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewDecoder(r.Body).Decode(&user)
 	user.UserID = strconv.Itoa(IDUser)
 	users = append(users, user)
+	fmt.Println(user)
 	json.NewEncoder(w).Encode(user)
 	IDUser++
 
@@ -58,6 +59,19 @@ func registerUser(w http.ResponseWriter, r *http.Request) {
 // sign in user
 func loginUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	var jwt = "this is the jwt token"
+	var errorMsg = "User error"
+	var user User
+	_ = json.NewDecoder(r.Body).Decode(&user)
+	for _, item := range users {
+		if item.Username == user.Username && item.Password == user.Password {
+			// TODO give back the JWT
+			json.NewEncoder(w).Encode(jwt)
+			return
+		}
+	}
+	json.NewEncoder(w).Encode(errorMsg)
+
 }
 
 // view all auctions
@@ -148,6 +162,10 @@ func main() {
 	auctions = append(auctions, Auction{AuctionID: "9", AuctionName: "Iphone", FirstBid: 100, SellerID: "10", AuctionStatus: "Avalible"})
 	auctions = append(auctions, Auction{AuctionID: "10", AuctionName: "Laptop", FirstBid: 500, SellerID: "11", AuctionStatus: "Avalible"})
 
+	// fake users
+	users = append(users, User{UserID: "10", FirstName: "Laptop", LastName: "500", Username: "11", Password: "Avalible"})
+	users = append(users, User{UserID: "11", FirstName: "abdul", LastName: "aboubakar", Username: "abdul123", Password: "wassup"})
+
 	// user endpoints
 	r.HandleFunc("/api/user", registerUser).Methods("POST")
 	r.HandleFunc("/api/login", loginUser).Methods("POST")
@@ -160,8 +178,8 @@ func main() {
 	r.HandleFunc("/api/auction/{id}", deleteAuction).Methods("DELETE")
 
 	// bid endpoints
-	r.HandleFunc("/api/user", getBids).Methods("GET")
-	r.HandleFunc("/api/user", placeBid).Methods("POST")
+	r.HandleFunc("/api/auction/{id}/bids", getBids).Methods("GET")
+	r.HandleFunc("/api/auction/{id}/bid", placeBid).Methods("POST")
 
 	log.Fatal(http.ListenAndServe(":8081", r))
 }
