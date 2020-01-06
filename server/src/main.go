@@ -35,6 +35,8 @@ type User struct {
 // making a collection of auctions
 var auctions []Auction
 
+var ID = 1
+
 // create a user
 func registerUser(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "User page\n")
@@ -70,27 +72,48 @@ func viewAuctionByID(w http.ResponseWriter, r *http.Request) {
 
 // update an auction
 func updateAuctions(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "User page\n")
-	fmt.Println("hello world")
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	for index, item := range auctions {
+		if item.AuctionID == params["id"] {
+			//slice to remove the element
+			auctions = append(auctions[:index], auctions[index+1:]...)
+			//adding a new element with new info
+			var auction Auction
+			_ = json.NewDecoder(r.Body).Decode(&auction)
+			auction.AuctionID = params["id"]
+			auctions = append(auctions, auction)
+			json.NewEncoder(w).Encode(auction)
+			fmt.Println("Update Auction")
+			return
+		}
+	}
 }
 
 // create an auction
 func createAuction(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	var ID = 1
 	var auction Auction
 	_ = json.NewDecoder(r.Body).Decode(&auction)
 	auction.AuctionID = strconv.Itoa(ID)
 	auctions = append(auctions, auction)
 	json.NewEncoder(w).Encode(auction)
-
-	fmt.Println("hello world")
+	ID++
+	fmt.Println("added New auction")
 }
 
 // remove an auction from the database
 func deleteAuction(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "User page\n")
-	fmt.Println("hello world")
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	for index, item := range auctions {
+		if item.AuctionID == params["id"] {
+			auctions = append(auctions[:index], auctions[index+1:]...)
+			break
+		}
+	}
+	json.NewEncoder(w).Encode(auctions)
+	fmt.Println("deleted Auction")
 }
 
 // viewing all the bids on a bid
