@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -21,7 +20,8 @@ type Auction struct {
 
 type Bid struct {
 	BidID     string `json:"bidid"`
-	BidAmount string `json:"bidamount"`
+	AuctionID string `json:"auctionid"`
+	BidAmount int    `json:"bidamount"`
 	BidderID  string `json:"bidderid"`
 }
 
@@ -36,9 +36,11 @@ type User struct {
 // making all the difderent collection
 var auctions []Auction
 var users []User
+var bids []Bid
 
 var IDUser = 1
 var IDAuction = 1
+var IDBid = 1
 
 // create a user
 func registerUser(w http.ResponseWriter, r *http.Request) {
@@ -76,9 +78,9 @@ func loginUser(w http.ResponseWriter, r *http.Request) {
 
 // view all auctions
 func viewAuctions(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode(auctions)
 	w.Header().Set("Content-Type", "application/json")
-	fmt.Println(auctions[1].AuctionID)
+	json.NewEncoder(w).Encode(auctions)
+	fmt.Println(auctions)
 	fmt.Println("Sending List of Auctions")
 }
 
@@ -143,16 +145,34 @@ func deleteAuction(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("deleted Auction")
 }
 
-// viewing all the bids on a bid
+// viewing the bids on an auction
 func getBids(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "User page\n")
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	var bidList []Bid
+	for _, item := range bids {
+		if item.AuctionID == params["id"] {
+			bidList = append(bidList, item)
+		}
+	}
+	json.NewEncoder(w).Encode(bidList)
 	fmt.Println("hello world")
 }
 
 // place a bid on an auction
 func placeBid(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "User page\n")
-	fmt.Println("hello world")
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+	var bid Bid
+	_ = json.NewDecoder(r.Body).Decode(&bid)
+	bid.BidID = strconv.Itoa(IDBid)
+	bid.AuctionID = params["id"]
+
+	// add the bid to the list
+	bids = append(bids, bid)
+
+	json.NewEncoder(w).Encode(bid)
+	IDBid++
 }
 
 func main() {
