@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// Auction class
 type Auction struct {
 	AuctionID     string `json:"auctionid"`
 	AuctionName   string `json:"auctionName"`
@@ -18,6 +19,7 @@ type Auction struct {
 	AuctionStatus string `json:"auctionstatus"`
 }
 
+// Bid class
 type Bid struct {
 	BidID     string `json:"bidid"`
 	AuctionID string `json:"auctionid"`
@@ -25,6 +27,7 @@ type Bid struct {
 	BidderID  string `json:"bidderid"`
 }
 
+// User class
 type User struct {
 	UserID    string `json:"userid"`
 	FirstName string `json:"firstname"`
@@ -38,8 +41,13 @@ var auctions []Auction
 var users []User
 var bids []Bid
 
+// IDUser counter
 var IDUser = 1
+
+// IDAuction counter
 var IDAuction = 1
+
+// IDBid counter
 var IDBid = 1
 
 // create a user
