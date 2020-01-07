@@ -6,7 +6,10 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"runtime"
 	"strconv"
+	"sync"
+	"time"
 
 	"github.com/go-redis/redis"
 	"github.com/gorilla/mux"
@@ -36,6 +39,17 @@ type User struct {
 	LastName  string `json:"lastname"`
 	Username  string `json:"username"`
 	Password  string `json:"password"`
+}
+
+// create a client
+func createClient() *redis.Client {
+	client := redis.NewClient(&redis.Options{
+		Addr:     "redis:6379",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+
+	return client
 }
 
 // redisPing send a ping
@@ -202,32 +216,63 @@ func placeBid(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 
-	name := os.Getenv("SERVER_NAME")
-	fmt.Println(name)
-	r := mux.NewRouter()
+	runtime.GOMAXPROCS(2)
+	var wg sync.WaitGroup
+	wg.Add(2)
 
-	// creating fake data
-	auctions = append(auctions, Auction{AuctionID: "9", AuctionName: "Iphone", FirstBid: 100, SellerID: "10", AuctionStatus: "Avalible"})
-	auctions = append(auctions, Auction{AuctionID: "10", AuctionName: "Laptop", FirstBid: 500, SellerID: "11", AuctionStatus: "Avalible"})
+	// thread used to update redis
+	go func() {
+		defer wg.Done()
 
-	// fake users
-	users = append(users, User{UserID: "10", FirstName: "Laptop", LastName: "500", Username: "11", Password: "Avalible"})
-	users = append(users, User{UserID: "11", FirstName: "abdul", LastName: "aboubakar", Username: "abdul123", Password: "wassup"})
+		name := os.Getenv("SERVER_NAME")
+		port := os.Getenv("SERVER_PORT")
 
-	// user endpoints
-	r.HandleFunc("/api/user", registerUser).Methods("POST")
-	r.HandleFunc("/api/login", loginUser).Methods("POST")
+		// create client link to redis
+		client := createClient()
 
-	// auctions endpoints
-	r.HandleFunc("/api/auctions", viewAuctions).Methods("GET")
-	r.HandleFunc("/api/auction/{id}", viewAuctionByID).Methods("GET")
-	r.HandleFunc("/api/auction/{id}", updateAuctions).Methods("PUT")
-	r.HandleFunc("/api/auction", createAuction).Methods("POST")
-	r.HandleFunc("/api/auction/{id}", deleteAuction).Methods("DELETE")
+		// add the server to the list
+		client.LPush("server_list", name)
 
-	// bid endpoints
-	r.HandleFunc("/api/auction/{id}/bids", getBids).Methods("GET")
-	r.HandleFunc("/api/auction/{id}/bid", placeBid).Methods("POST")
+		// server discovery pings
+		for {
+			err := client.Set(name, port, time.Millisecond*10000).Err()
+			if err != nil {
+				fmt.Println(err)
+				time.Sleep(time.Millisecond * 9000)
+			}
+		}
+	}()
 
-	log.Fatal(http.ListenAndServe(":8081", r))
+	// server handling thread
+	go func() {
+		defer wg.Done()
+
+		r := mux.NewRouter()
+
+		// creating fake data
+		auctions = append(auctions, Auction{AuctionID: "9", AuctionName: "Iphone", FirstBid: 100, SellerID: "10", AuctionStatus: "Avalible"})
+		auctions = append(auctions, Auction{AuctionID: "10", AuctionName: "Laptop", FirstBid: 500, SellerID: "11", AuctionStatus: "Avalible"})
+
+		// fake users
+		users = append(users, User{UserID: "10", FirstName: "Laptop", LastName: "500", Username: "11", Password: "Avalible"})
+		users = append(users, User{UserID: "11", FirstName: "abdul", LastName: "aboubakar", Username: "abdul123", Password: "wassup"})
+
+		// user endpoints
+		r.HandleFunc("/api/user", registerUser).Methods("POST")
+		r.HandleFunc("/api/login", loginUser).Methods("POST")
+
+		// auctions endpoints
+		r.HandleFunc("/api/auctions", viewAuctions).Methods("GET")
+		r.HandleFunc("/api/auction/{id}", viewAuctionByID).Methods("GET")
+		r.HandleFunc("/api/auction/{id}", updateAuctions).Methods("PUT")
+		r.HandleFunc("/api/auction", createAuction).Methods("POST")
+		r.HandleFunc("/api/auction/{id}", deleteAuction).Methods("DELETE")
+
+		// bid endpoints
+		r.HandleFunc("/api/auction/{id}/bids", getBids).Methods("GET")
+		r.HandleFunc("/api/auction/{id}/bid", placeBid).Methods("POST")
+
+		log.Fatal(http.ListenAndServe(":8081", r))
+	}()
+	wg.Wait()
 }
