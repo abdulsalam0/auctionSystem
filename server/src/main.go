@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/go-redis/redis"
 	"github.com/gorilla/mux"
 )
 
@@ -34,6 +35,19 @@ type User struct {
 	LastName  string `json:"lastname"`
 	Username  string `json:"username"`
 	Password  string `json:"password"`
+}
+
+// redisPing send a ping
+func redisPing() {
+	client := redis.NewClient(&redis.Options{
+		Addr:     "redis:6379",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+
+	pong, err := client.Ping().Result()
+	fmt.Println(pong, err)
+	// Output: PONG <nil>
 }
 
 // making all the difderent collection
@@ -89,6 +103,7 @@ func viewAuctions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(auctions)
 	fmt.Println(auctions)
+	redisPing()
 	fmt.Println("Sending List of Auctions")
 }
 
