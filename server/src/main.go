@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/go-redis/redis"
@@ -200,6 +201,9 @@ func placeBid(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+
+	name := os.Getenv("SERVER_NAME")
+	fmt.Println(name)
 	r := mux.NewRouter()
 
 	// creating fake data
