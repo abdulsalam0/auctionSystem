@@ -156,7 +156,7 @@ func getBids(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	json.NewEncoder(w).Encode(bidList)
-	fmt.Println("hello world")
+	fmt.Println("list of bids on auction", params["id"])
 }
 
 // place a bid on an auction
@@ -173,6 +173,7 @@ func placeBid(w http.ResponseWriter, r *http.Request) {
 
 	json.NewEncoder(w).Encode(bid)
 	IDBid++
+	fmt.Println("placed a bid on auction", params["id"])
 }
 
 func main() {
