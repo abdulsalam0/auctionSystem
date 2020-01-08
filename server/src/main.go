@@ -17,6 +17,7 @@ import (
 
 // Auction class
 type Auction struct {
+	RequestNum    string `json:"requestnum"`
 	AuctionID     string `json:"auctionid"`
 	AuctionName   string `json:"auctionName"`
 	FirstBid      int    `json:"firstbid"`
@@ -26,19 +27,21 @@ type Auction struct {
 
 // Bid class
 type Bid struct {
-	BidID     string `json:"bidid"`
-	AuctionID string `json:"auctionid"`
-	BidAmount int    `json:"bidamount"`
-	BidderID  string `json:"bidderid"`
+	RequestNum string `json:"requestnum"`
+	BidID      string `json:"bidid"`
+	AuctionID  string `json:"auctionid"`
+	BidAmount  int    `json:"bidamount"`
+	BidderID   string `json:"bidderid"`
 }
 
 // User class
 type User struct {
-	UserID    string `json:"userid"`
-	FirstName string `json:"firstname"`
-	LastName  string `json:"lastname"`
-	Username  string `json:"username"`
-	Password  string `json:"password"`
+	RequestNum string `json:"requestnum"`
+	UserID     string `json:"userid"`
+	FirstName  string `json:"firstname"`
+	LastName   string `json:"lastname"`
+	Username   string `json:"username"`
+	Password   string `json:"password"`
 }
 
 // create a client
