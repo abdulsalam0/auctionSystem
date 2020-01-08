@@ -64,7 +64,7 @@ func forwardRequest(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	resp, err := http.Post("http://server1:8081/api/user", "application/json", bytes.NewBuffer(requestBody))
+	resp, err := http.Post("http://server1:8080/api/user", "application/json", bytes.NewBuffer(requestBody))
 
 	if err != nil {
 		fmt.Println(err)

@@ -275,7 +275,8 @@ func main() {
 		r.HandleFunc("/api/auction/{id}/bids", getBids).Methods("GET")
 		r.HandleFunc("/api/auction/{id}/bid", placeBid).Methods("POST")
 
-		log.Fatal(http.ListenAndServe(":8081", r))
+		port := os.Getenv("SERVER_PORT")
+		log.Fatal(http.ListenAndServe(":"+port, r))
 	}()
 	wg.Wait()
 }
