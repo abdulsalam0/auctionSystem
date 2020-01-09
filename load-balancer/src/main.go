@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -65,20 +64,21 @@ func forwardRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp, err := http.Post("http://server1:8080/api/user", "application/json", bytes.NewBuffer(requestBody))
+	resp.Header.Set("Content-type", "application/json")
 
 	if err != nil {
 		fmt.Println(err)
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println(err)
-	}
-	// check the content of the body
-	fmt.Println(string(body))
+	var result map[string]interface{}
 
-	json.NewEncoder(w).Encode(string(body))
+	json.NewDecoder(resp.Body).Decode(&result)
+
+	// check the content of the body
+	fmt.Println(result)
+
+	json.NewEncoder(w).Encode(result)
 }
 
 // create a client
