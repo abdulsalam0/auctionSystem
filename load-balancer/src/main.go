@@ -44,7 +44,7 @@ type User struct {
 // IDRequest counter
 var IDRequest = 1
 
-func forwardRequest(w http.ResponseWriter, r *http.Request) {
+func createUserRequest(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var user User
 	_ = json.NewDecoder(r.Body).Decode(&user)
@@ -63,7 +63,127 @@ func forwardRequest(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	resp, err := http.Post("http://server1:8080/api/user", "application/json", bytes.NewBuffer(requestBody))
+	result := postServerRequest(requestBody, r.URL.Path)
+
+	json.NewEncoder(w).Encode(result)
+}
+func loginUserReqest(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var auction Auction
+	_ = json.NewDecoder(r.Body).Decode(&auction)
+	auction.RequestNum = strconv.Itoa(IDRequest)
+	requestBody, err := json.Marshal(map[string]string{
+		"requestnum":   auction.RequestNum,
+		"userid":       auction.AuctionID,
+		"firstname":    auction.AuctionName,
+		"auctionsatus": auction.AuctionStatus,
+		"firstbid":     strconv.Itoa(auction.FirstBid),
+		"sellerid":     auction.SellerID,
+	})
+	IDRequest++
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	result := postServerRequest(requestBody, r.URL.Path)
+
+	json.NewEncoder(w).Encode(result)
+}
+func createAuctionRequest(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var user User
+	_ = json.NewDecoder(r.Body).Decode(&user)
+	user.RequestNum = strconv.Itoa(IDRequest)
+	requestBody, err := json.Marshal(map[string]string{
+		"requestnum": user.RequestNum,
+		"userid":     user.UserID,
+		"firstname":  user.FirstName,
+		"lastname":   user.LastName,
+		"username":   user.Username,
+		"password":   user.Password,
+	})
+	IDRequest++
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	result := postServerRequest(requestBody, r.URL.Path)
+
+	json.NewEncoder(w).Encode(result)
+}
+func updateAuctionRequest(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var user User
+	_ = json.NewDecoder(r.Body).Decode(&user)
+	user.RequestNum = strconv.Itoa(IDRequest)
+	requestBody, err := json.Marshal(map[string]string{
+		"requestnum": user.RequestNum,
+		"userid":     user.UserID,
+		"firstname":  user.FirstName,
+		"lastname":   user.LastName,
+		"username":   user.Username,
+		"password":   user.Password,
+	})
+	IDRequest++
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	result := serverRequest(requestBody, r.URL.Path)
+
+	json.NewEncoder(w).Encode(result)
+}
+func deleteAuctionRequest(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var user User
+	_ = json.NewDecoder(r.Body).Decode(&user)
+	user.RequestNum = strconv.Itoa(IDRequest)
+	requestBody, err := json.Marshal(map[string]string{
+		"requestnum": user.RequestNum,
+		"userid":     user.UserID,
+		"firstname":  user.FirstName,
+		"lastname":   user.LastName,
+		"username":   user.Username,
+		"password":   user.Password,
+	})
+	IDRequest++
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	result := serverRequest(requestBody, r.URL.Path)
+
+	json.NewEncoder(w).Encode(result)
+}
+func creaetBidRequest(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var bid Bid
+	_ = json.NewDecoder(r.Body).Decode(&bid)
+	bid.RequestNum = strconv.Itoa(IDRequest)
+	requestBody, err := json.Marshal(map[string]string{
+		"requestnum": bid.RequestNum,
+		"bidid":      bid.BidID,
+		"bidderid":   bid.BidderID,
+		"auctionid":  bid.AuctionID,
+		"bidamount":  strconv.Itoa(bid.BidAmount),
+	})
+	IDRequest++
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	result := postServerRequest(requestBody, r.URL.Path)
+
+	json.NewEncoder(w).Encode(result)
+}
+
+func postServerRequest(requestBody []byte, endpoint string, params ...string) map[string]interface{} {
+	resp, err := http.Post("http://server1:8080/"+endpoint, "application/json", bytes.NewBuffer(requestBody))
 	resp.Header.Set("Content-type", "application/json")
 
 	if err != nil {
@@ -77,8 +197,8 @@ func forwardRequest(w http.ResponseWriter, r *http.Request) {
 
 	// check the content of the body
 	fmt.Println(result)
+	return result
 
-	json.NewEncoder(w).Encode(result)
 }
 
 // create a client
@@ -141,7 +261,14 @@ func main() {
 
 	r := mux.NewRouter()
 
-	r.HandleFunc("/api/user", forwardRequest)
+	r.HandleFunc("/api/user", createUserRequest).Methods("POST")
+	r.HandleFunc("/api/login", loginUserReqest).Methods("POST")
+
+	r.HandleFunc("/api/auction", createAuctionRequest).Methods("POST")
+	r.HandleFunc("/api/auction/{id}", updateAuctionRequest).Methods("PUT")
+	r.HandleFunc("/api/auction/{id}", deleteAuctionRequest).Methods("DELETE")
+
+	//r.HandleFunc("/api/auction/{id}/bid", forwardRequest).Methods("POST")
 
 	log.Fatal(http.ListenAndServe(":9090", r))
 
